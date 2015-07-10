@@ -1,15 +1,15 @@
 package alpvax.playerpowers.api.power;
 
+import org.apache.logging.log4j.Level;
+
 import com.google.common.base.Predicate;
 
 import alpvax.common.util.EntityHelper;
 import alpvax.playerpowers.api.IPowerPlayerInstance;
-import alpvax.playerpowers.api.PlayerPowersConstants;
-import alpvax.playerpowers.api.PlayerPowersRegistry;
-import alpvax.playerpowers.api.power.IPower.EnumPowerType;
 import alpvax.playerpowers.api.util.TickingVariable;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -86,11 +86,16 @@ public abstract class PowerInstance
 	{
 		if(canTrigger())
 		{
-			MovingObjectPosition mop = EntityHelper.getLookingAt(attatchedPlayerInstance.getPlayer(), getMaxTargetRange(), getValidTargets());
-			getPower().activate(attatchedPlayerInstance.getPlayer(), mop.entityHit, mop.hitVec);
+			activate();
 		}
 	}
 	
+	private void activate()
+	{
+		MovingObjectPosition mop = EntityHelper.getLookingAt(attatchedPlayerInstance.getPlayer(), getMaxTargetRange(), getValidTargets());
+		getPower().activate(attatchedPlayerInstance.getPlayer(), mop.entityHit, mop.hitVec);
+	}
+
 	private boolean exists(TickingVariable var)
 	{
 		return var != null && var.maximum() > 0;
@@ -100,9 +105,10 @@ public abstract class PowerInstance
 	{
 		private IPower power;
 		private Class<? extends PowerInstance> instanceClass;
-		private TickingVariable cooldown;
-		private TickingVariable duration;
-		private TickingVariable active;
+		private int cooldownActivate = 0;
+		private int cooldownDeactivate = -1;
+		private int duration = -1;
+		private boolean active = false;
 		
 		public Builder(IPower power, Class<? extends PowerInstance> clazz)
 		{
@@ -110,50 +116,48 @@ public abstract class PowerInstance
 			this.instanceClass = clazz;
 		}
 
-		public Builder setCooldown(int i)
+		public Builder setActivationCooldown(int i)
 		{
-			cooldown = new TickingVariable(i);
+			cooldownActivate = i;
 			return this;
 		}
-		
-		/**
-		 * Set how the power works.
-		 * @param duration ignored for every type apart from timed, sets the active duration
-		 */
-		public Builder setType(EnumPowerType type, int duration)
+		public Builder setDectivationCooldown(int i)
 		{
-			switch(type)
-			{
-			case INSTANT:
-				this.duration = null;
-				active = null;
-				break;
-			case TIMED:
-				this.duration = new TickingVariable(duration).setLimit(0);
-				active = new TickingVariable(0).countUp();
-				break;
-			case TOGGLED:
-				this.duration = null;
-				active = new TickingVariable(0).countUp();
-				break;
-			case CONTINUOUS:
-				this.duration = null;
-				active = new TickingVariable(0).countUp();
-				active.start();
-				break;
-			}
+			cooldownDeactivate = i;
+			return this;
+		}
+		public Builder setDuration(int i)
+		{
+			duration = i;
+			return this;
+		}
+		public Builder startActive(boolean flag)
+		{
+			active = flag;
 			return this;
 		}
 		
 		public PowerInstance build(IPowerPlayerInstance ppi)
 		{
-			PowerInstance pi = instanceClass.newInstance();
-			pi.attatchedPlayerInstance = ppi;
-			pi.power = power;
-			pi.cooldown = cooldown;
-			pi.duration = duration;
-			pi.active = active;
-			return pi;
+			try
+			{
+				PowerInstance pi = instanceClass.newInstance();
+				pi.attatchedPlayerInstance = ppi;
+				pi.power = power;
+				pi.cooldownActivate = new TickingVariable(cooldownActivate);
+				pi.cooldownDeactivate = new TickingVariable(cooldownDeactivate);
+				pi.duration = new TickingVariable(duration);
+				if(active)
+				{
+					pi.activate();
+				}
+				return pi;
+			}
+			catch(Exception e)
+			{
+				FMLLog.log(Level.ERROR, e, "Unable to create new PowerInstance!");
+			}
+			return null;
 		}
 	}
 }

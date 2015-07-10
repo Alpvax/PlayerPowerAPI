@@ -15,18 +15,4 @@ public interface IPower
 	public void activate(EntityPlayer user, Entity targetEntity, Vec3 targetPos);
 	
 	public void deactivate(EntityPlayer user, Entity targetEntity, Vec3 targetPos);
-
-
-	
-	public static enum EnumPowerType
-	{
-		/**Does something when triggered, but doesn't remain active*/
-		INSTANT,
-		/**Once activated, remains active for a specified duration before automatically deactivating*/
-		TIMED,
-		/**Can be toggled on and off, has an unlimited duration*/
-		TOGGLED,
-		/**Always active*/
-		CONTINUOUS;
-	}
 }

@@ -33,6 +33,24 @@ public class TargetType
 		this.e = e;
 		this.a = a;
 	}
+	
+	@Override
+	public boolean equals(Object other)
+	{
+		if(other == null || other.getClass() != this.getClass())
+		{
+			return false;
+		}
+		TargetType o = (TargetType)other;
+		return this.t == o.t && this.e == o.e && this.a == o.a;
+	}
+	@Override
+	public int hashCode()
+	{
+		return 31 * (31 * t.hashCode() + e.hashCode()) + a.hashCode();
+	}
+	
+	
 	//TODO "find" methods
 
 	public Entity findEntity(EntityPlayer player, double radius, Predicate<Entity> filter)

@@ -5,7 +5,10 @@ import org.apache.logging.log4j.Level;
 import com.google.common.base.Predicate;
 
 import alpvax.common.util.EntityHelper;
-import alpvax.playerpowers.api.IPowerPlayerInstance;
+import alpvax.playerpowers.api.IPoweredPlayerInstance;
+import alpvax.playerpowers.api.power.TargetType.AimType;
+import alpvax.playerpowers.api.power.TargetType.EntitiesEffected;
+import alpvax.playerpowers.api.power.TargetType.TriggerTarget;
 import alpvax.playerpowers.api.util.TickingVariable;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MovingObjectPosition;
@@ -15,7 +18,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public abstract class PowerInstance
 {
-	private IPowerPlayerInstance attatchedPlayerInstance;
+	private IPoweredPlayerInstance attatchedPlayerInstance;
 	private IPower power;
 	
 	private TickingVariable cooldownActivate;
@@ -68,6 +71,11 @@ public abstract class PowerInstance
 	{
 		return 64D;
 	}
+
+	public TargetType getTarget()
+	{
+		return target;
+	}
 	
 	/**
 	 * Return something different from this if you want to only effect certain entities
@@ -108,6 +116,7 @@ public abstract class PowerInstance
 		private int cooldownActivate = 0;
 		private int cooldownDeactivate = -1;
 		private int duration = -1;
+		private TargetType target = new TargetType(TriggerTarget.SELF, EntitiesEffected.SINGLE, AimType.EXACT);
 		private boolean active = false;
 		
 		public Builder(IPower power, Class<? extends PowerInstance> clazz)
@@ -131,13 +140,18 @@ public abstract class PowerInstance
 			duration = i;
 			return this;
 		}
+		public Builder setTargetType(TargetType t)
+		{
+			target = t;
+			return this;
+		}
 		public Builder startActive(boolean flag)
 		{
 			active = flag;
 			return this;
 		}
 		
-		public PowerInstance build(IPowerPlayerInstance ppi)
+		public PowerInstance build(IPoweredPlayerInstance ppi)
 		{
 			try
 			{
@@ -147,6 +161,7 @@ public abstract class PowerInstance
 				pi.cooldownActivate = new TickingVariable(cooldownActivate);
 				pi.cooldownDeactivate = new TickingVariable(cooldownDeactivate);
 				pi.duration = new TickingVariable(duration);
+				pi.target = target;
 				if(active)
 				{
 					pi.activate();

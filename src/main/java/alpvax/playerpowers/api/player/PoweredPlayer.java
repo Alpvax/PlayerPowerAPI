@@ -3,6 +3,9 @@ package alpvax.playerpowers.api.player;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.Level;
+
+import alpvax.playerpowers.api.power.IPower;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -11,8 +14,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.FMLLog;
-
-import org.apache.logging.log4j.Level;
 
 
 public class PoweredPlayer implements IExtendedEntityProperties
@@ -121,7 +122,22 @@ public class PoweredPlayer implements IExtendedEntityProperties
 		IPowerProvider p = getProvider(providerKey);
 		if(p != null)
 		{
-			p.getPowers().get(powerKey).activate(player, targetEntity, targetPos);
+			IPower pow = p.getPowers().get(powerKey);
+			if(pow.isActive())
+			{
+				if(pow.canActivate())
+				{
+					pow.activate(player);
+					pow.triggerActiveCooldown();
+					return true;
+				}
+			}
+			else if(pow.canDeactivate())
+			{
+				pow.deactivate(player);
+				pow.triggerDeactiveCooldown();
+				return true;
+			}
 		}
 		return false;
 	}

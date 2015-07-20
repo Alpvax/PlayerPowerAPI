@@ -1,13 +1,12 @@
 package alpvax.playerpowers.api.power;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.Vec3;
 
 
 public interface IPower
 {
+	@Deprecated
 	public String getID();
 
 	/**
@@ -20,11 +19,46 @@ public interface IPower
 	 */
 	public NBTTagCompound writeToNBT(NBTTagCompound compound);
 
+	/**
+	 * @return the name of the power for use in any GUI elements. (Or death messages etc.)
+	 */
 	public String displayName();
+	
+	/**
+	 * @return whether the power is active or not.
+	 * Will always return true for constant-effect powers, will always return false for instant-effect powers.
+	 */
+	public boolean isActive();
 
-	public void onActiveTick(EntityPlayer user, Entity targetEntity, Vec3 targetPos);
+	/**
+	 * Called every tick the power is active.
+	 * @param user the {@link EntityPlayer} who used the power
+	 */
+	public void onActiveTick(EntityPlayer user);
 
-	public void activate(EntityPlayer user, Entity targetEntity, Vec3 targetPos);
+	/**
+	 * Activates the power.
+	 * @param user the {@link EntityPlayer} who used the power
+	 */
+	public void activate(EntityPlayer user);
 
-	public void deactivate(EntityPlayer user, Entity targetEntity, Vec3 targetPos);
+	/**
+	 * Deactivate the power.
+	 * @param user the {@link EntityPlayer} who used the power
+	 */
+	public void deactivate(EntityPlayer user);
+
+	boolean canActivate();
+
+	boolean canDeactivate();
+
+	/**
+	 * Used to actually trigger the cooldown when the power is activated
+	 */
+	public void triggerActiveCooldown();
+
+	/**
+	 * Used to actually trigger the cooldown when the power is deactivated
+	 */
+	public void triggerDeactiveCooldown();
 }

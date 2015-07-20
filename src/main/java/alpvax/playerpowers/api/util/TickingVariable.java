@@ -1,8 +1,14 @@
 package alpvax.playerpowers.api.util;
 
+import net.minecraft.nbt.NBTTagCompound;
+
 /**A variable that counts down to 0 before resetting */
 public class TickingVariable
 {
+	private static final String TAG_MAX = "Max";
+	private static final String TAG_VALUE = "Value";
+	private static final String TAG_RUN = "Running";
+	
 	private boolean running = false;
 	private int max;
 	private int value = 0;
@@ -57,5 +63,26 @@ public class TickingVariable
 	public String toString()
 	{
 		return value + " (" + max + " to 0)";
+	}
+	
+	public NBTTagCompound toNBT(NBTTagCompound nbt)
+	{
+		nbt.setInteger(TAG_MAX, max);
+		nbt.setInteger(TAG_VALUE, value);
+		nbt.setBoolean(TAG_RUN, running);
+		return nbt;
+	}
+	
+	public static TickingVariable fromNBT(NBTTagCompound nbt)
+	{
+		TickingVariable var = new TickingVariable(nbt.getInteger(TAG_MAX));
+		var.value = nbt.getInteger(TAG_VALUE);
+		var.running = nbt.getBoolean(TAG_RUN);
+		return var;
+	}
+
+	public static boolean exists(TickingVariable var)
+	{
+		return var != null && var.maximum() > 0;
 	}
 }

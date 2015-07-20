@@ -3,10 +3,11 @@ package alpvax.playerpowers.api.player;
 import java.util.HashMap;
 import java.util.Map;
 
+import alpvax.playerpowers.api.PlayerPowersConstants;
+import alpvax.playerpowers.api.power.IPower;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants.NBT;
-import alpvax.playerpowers.api.power.IPower;
 
 
 /**
@@ -27,11 +28,11 @@ public class NBTPowerProvider implements IPowerProvider
 	@Override
 	public IPowerProvider readFromNBT(NBTTagCompound compound)
 	{
-		NBTTagList list = compound.getTagList(PowerAPIConstants.TAG_POWERS, NBT.TAG_COMPOUND);
+		NBTTagList list = compound.getTagList(PlayerPowersConstants.TAG_POWERS, NBT.TAG_COMPOUND);
 		for(int i = 0; i < list.tagCount(); i++)
 		{
 			NBTTagCompound nbt = list.getCompoundTagAt(i);
-			String id = nbt.getString(PowerAPIConstants.TAG_POWER_ID);
+			String id = nbt.getString(PlayerPowersConstants.TAG_POWER_ID);
 			//TODO: instantiate IPower
 		}
 		return null;

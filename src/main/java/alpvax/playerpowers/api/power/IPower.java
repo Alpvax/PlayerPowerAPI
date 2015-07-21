@@ -6,9 +6,6 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public interface IPower
 {
-	@Deprecated
-	public String getID();
-
 	/**
 	 * @return this for ease of use
 	 */

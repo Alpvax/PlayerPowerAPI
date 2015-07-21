@@ -5,13 +5,6 @@ import net.minecraft.nbt.NBTTagCompound;
 public class NBTPower extends Power
 {
 	@Override
-	@Deprecated
-	public String getID()
-	{
-		return "";
-	}
-
-	@Override
 	public String displayName()
 	{
 		return "";

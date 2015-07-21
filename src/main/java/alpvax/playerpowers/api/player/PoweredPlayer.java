@@ -1,11 +1,18 @@
 package alpvax.playerpowers.api.player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.Level;
 
+import com.google.common.collect.ImmutableList;
+
+import alpvax.playerpowers.api.PlayerPowersConstants;
 import alpvax.playerpowers.api.power.IPower;
+import alpvax.playerpowers.api.provider.IPowerProvider;
+import alpvax.playerpowers.api.provider.NBTPowerProvider;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -18,8 +25,6 @@ import net.minecraftforge.fml.common.FMLLog;
 
 public class PoweredPlayer implements IExtendedEntityProperties
 {
-	public static final String LOG_TAG = "PoweredPlayer";
-
 	private static final String TAG_ID = "ProviderID";
 	private static final String TAG_CLASS = "ProviderClass";
 
@@ -50,9 +55,9 @@ public class PoweredPlayer implements IExtendedEntityProperties
 		{
 			NBTTagCompound nbt = list.getCompoundTagAt(i);
 			String id = nbt.getString(TAG_ID);
+			String c = nbt.hasKey(TAG_CLASS, NBT.TAG_STRING) ? nbt.getString(TAG_CLASS) : NBTPowerProvider.class.getName();
 			try
 			{
-				String c = nbt.hasKey(TAG_CLASS, NBT.TAG_STRING) ? nbt.getString(TAG_CLASS) : NBTPowerProvider.class.getName();
 				@SuppressWarnings("unchecked")
 				IPowerProvider p = ((Class<? extends IPowerProvider>)Class.forName(c)).newInstance();
 				providers.put(id, p.readFromNBT(nbt));
@@ -60,7 +65,7 @@ public class PoweredPlayer implements IExtendedEntityProperties
 			catch(Exception e)
 			{
 				//TODO: Fail safe (skip) and display error message
-				FMLLog.log("PoweredPlayer", Level.WARN, e, "Unable to load PowerProvider registered with id %s", id);
+				FMLLog.log(PlayerPowersConstants.LOG_TAG, Level.WARN, e, "Unable to load PowerProvider (Class: %s)registered with id %s", c, id);
 			}
 		}
 	}
@@ -76,35 +81,49 @@ public class PoweredPlayer implements IExtendedEntityProperties
 	{
 		if(providers.containsKey(key))
 		{
-			FMLLog.log(LOG_TAG, Level.WARN, "Power Provider already registered with key %s. Unable to register %s", key, provider);
+			FMLLog.log(PlayerPowersConstants.LOG_TAG, Level.WARN, "Power Provider already registered with key %s. Unable to register %s", key, provider);
 			return;
 		}
 		if(key == null || key.length() < 1)
 		{
-			FMLLog.log(LOG_TAG, Level.WARN, "Unable to register Power Provider with null key.");
+			FMLLog.log(PlayerPowersConstants.LOG_TAG, Level.WARN, "Unable to register Power Provider with null key.");
 			return;
 		}
 		if(provider == null)
 		{
-			FMLLog.log(LOG_TAG, Level.WARN, "Unable to register null Power Provider.");
+			FMLLog.log(PlayerPowersConstants.LOG_TAG, Level.WARN, "Unable to register null Power Provider.");
 			return;
 		}
-		Class<? extends IPowerProvider> c = provider.getClass();
 		try
 		{
+			Class<? extends IPowerProvider> c = provider.getClass();
 			c.newInstance();
 		}
 		catch(Exception e)
 		{
-			FMLLog.log(LOG_TAG, Level.WARN, "Power Provider %s cannot be instantiated.");
+			FMLLog.log(PlayerPowersConstants.LOG_TAG, Level.WARN, "Power Provider %s cannot be instantiated.");
 			return;
 		}
 		providers.put(key, provider);
+		provider.onAttach(player);
 	}
 
-	public void removeProvider(String key, IPowerProvider provider)
+	/**
+	 * Removes the provider registered with the given key, stopping all powers beforehand.
+	 */
+	public void removeProvider(String key)
 	{
-		providers.remove(key);
+		IPowerProvider pp = providers.remove(key);
+		if(pp != null)
+		{
+			for(IPower p : pp.getPowers().values())
+			{
+				if(p.isActive())
+				{
+					p.deactivate(player);
+				}
+			}
+		}
 	}
 
 	public boolean hasProvider(String key)
@@ -115,6 +134,19 @@ public class PoweredPlayer implements IExtendedEntityProperties
 	public IPowerProvider getProvider(String key)
 	{
 		return providers.get(key);
+	}
+	
+	public int numProviders()
+	{
+		return providers.size();
+	}
+	
+	/**
+	 * @return an ImmuteableList of the provider keys
+	 */
+	public List<String> listProviders()
+	{
+		return ImmutableList.copyOf(providers.keySet());
 	}
 
 	public boolean triggerPower(String providerKey, String powerKey)
@@ -140,5 +172,35 @@ public class PoweredPlayer implements IExtendedEntityProperties
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * @param powerclass the class the powers must extend to be returned. Passing null returns all powers
+	 * @return a list of powers extending or implementing the passed in class
+	 */
+	public List<IPower> getPowers(Class<? extends IPower> powerclass)
+	{
+		boolean flag = powerclass == null;
+		List<IPower> list = new ArrayList<IPower>();
+		for(IPowerProvider pp : providers.values())
+		{
+			for(IPower p : pp.getPowers().values())
+			{
+				if(flag || powerclass.isAssignableFrom(p.getClass()))
+				{
+					list.add(p);
+				}
+			}
+		}
+		return list;
+	}
+
+	public static final void register(EntityPlayer player)
+	{
+		player.registerExtendedProperties(PlayerPowersConstants.TAG_EXTENDED_DATA, new PoweredPlayer());
+	}
+	public static final PoweredPlayer get(EntityPlayer player)
+	{
+		return (PoweredPlayer)player.getExtendedProperties(PlayerPowersConstants.TAG_EXTENDED_DATA);
 	}
 }

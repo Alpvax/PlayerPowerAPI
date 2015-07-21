@@ -1,10 +1,12 @@
-package alpvax.playerpowers.api.player;
+package alpvax.playerpowers.api.provider;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import alpvax.playerpowers.api.PlayerPowersConstants;
 import alpvax.playerpowers.api.power.IPower;
+import alpvax.playerpowers.api.power.NBTPower;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants.NBT;
@@ -18,11 +20,12 @@ import net.minecraftforge.common.util.Constants.NBT;
 public class NBTPowerProvider implements IPowerProvider
 {
 	private Map<String, IPower> powers = new HashMap<String, IPower>();
+	private boolean persists = false;
 
 	@Override
 	public Map<String, IPower> getPowers()
 	{
-		return powers;
+		return /*new HashMap<String, IPower>*/(powers);
 	}
 
 	@Override
@@ -33,15 +36,44 @@ public class NBTPowerProvider implements IPowerProvider
 		{
 			NBTTagCompound nbt = list.getCompoundTagAt(i);
 			String id = nbt.getString(PlayerPowersConstants.TAG_POWER_ID);
-			//TODO: instantiate IPower
+			NBTPower p = NBTPower.fromNBT(nbt);
+			powers.put(id, p);
 		}
+		persists = compound.hasKey(PlayerPowersConstants.TAG_PROVIDER_PERSISTS) && compound.getBoolean(PlayerPowersConstants.TAG_PROVIDER_PERSISTS);
 		return null;
 	}
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound)
 	{
-		return null;// TODO Auto-generated method stub
+		NBTTagList list = new NBTTagList();
+		for(String id : powers.keySet())
+		{
+			NBTTagCompound nbt = new NBTTagCompound();
+			powers.get(id).writeToNBT(nbt);
+			nbt.setString(PlayerPowersConstants.TAG_POWER_ID, id);
+		}
+		if(!list.hasNoTags())
+		{
+			compound.setTag(PlayerPowersConstants.TAG_POWERS, list);
+		}
+		if(persists)
+		{
+			compound.setBoolean(PlayerPowersConstants.TAG_PROVIDER_PERSISTS, true);
+		}
+		return compound;
+	}
+
+	@Override
+	public boolean persistAcrossDeath()
+	{
+		return persists;
+	}
+
+	@Override
+	public void onAttach(EntityPlayer player)
+	{
+		// TODO Auto-generated method stub
 	}
 
 }

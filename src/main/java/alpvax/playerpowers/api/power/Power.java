@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants.NBT;
 
-public /*abstract*/ class Power implements IPower
+public abstract class Power implements IPower
 {
 	protected TickingVariable cooldownActivate;
 	protected TickingVariable cooldownDeactivate;
@@ -55,6 +55,7 @@ public /*abstract*/ class Power implements IPower
 		{
 			compound.setTag(TAG_POWER_DURATION, duration.toNBT(new NBTTagCompound()));
 		}
+		compound.setInteger(TAG_POWER_ACTIVE, activeTicks);
 		return compound;
 	}
 
@@ -134,17 +135,4 @@ public /*abstract*/ class Power implements IPower
 	{
 		cooldownDeactivate.start();
 	}
-
-	@Override
-	public String getID() {
-		// TODO Remove from abstract
-		return null;
-	}
-
-	@Override
-	public String displayName() {
-		// TODO Remove from abstract
-		return null;
-	}
-
 }

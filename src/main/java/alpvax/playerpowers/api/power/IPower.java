@@ -20,12 +20,18 @@ public interface IPower
 	 * @return the name of the power for use in any GUI elements. (Or death messages etc.)
 	 */
 	public String displayName();
-	
+
 	/**
 	 * @return whether the power is active or not.
 	 * Will always return true for constant-effect powers, will always return false for instant-effect powers.
 	 */
 	public boolean isActive();
+
+	/**
+	 * Called every tick. Use it to update cooldowns etc.<br>
+	 * Does <strong>NOT</strong> need to call onActiveTick
+	 */
+	public void tick();
 
 	/**
 	 * Called every tick the power is active.

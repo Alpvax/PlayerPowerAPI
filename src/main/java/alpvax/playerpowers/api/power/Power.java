@@ -1,11 +1,15 @@
 package alpvax.playerpowers.api.power;
 
 
-import static alpvax.playerpowers.api.PlayerPowersConstants.*;
-import alpvax.playerpowers.api.util.TickingVariable;
+import static alpvax.playerpowers.api.PlayerPowersConstants.TAG_POWER_ACTIVE;
+import static alpvax.playerpowers.api.PlayerPowersConstants.TAG_POWER_COOLDOWN_A;
+import static alpvax.playerpowers.api.PlayerPowersConstants.TAG_POWER_COOLDOWN_D;
+import static alpvax.playerpowers.api.PlayerPowersConstants.TAG_POWER_DURATION;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants.NBT;
+import alpvax.playerpowers.api.util.TickingVariable;
+
 
 public abstract class Power implements IPower
 {
@@ -13,7 +17,7 @@ public abstract class Power implements IPower
 	protected TickingVariable cooldownDeactivate;
 	protected TickingVariable duration;
 	private int activeTicks = -1;
-	
+
 	public Power()
 	{
 	}
@@ -60,21 +64,33 @@ public abstract class Power implements IPower
 	}
 
 	@Override
+	public void tick()
+	{
+		cooldownActivate.tick();
+		cooldownDeactivate.tick();
+		duration.tick();
+		if(isActive())
+		{
+			activeTicks++;
+		}
+	}
+
+	@Override
 	public boolean isActive()
 	{
 		return activeTicks >= 0;
 	}
-	
+
 	public boolean hasCooldown()
 	{
 		return isActive() ? TickingVariable.exists(cooldownDeactivate) : TickingVariable.exists(cooldownActivate);
 	}
-	
+
 	public int getCooldown()
 	{
 		return isActive() ? cooldownDeactivate.value() : cooldownActivate.value();
 	}
-	
+
 	/**
 	 * @return the highest cooldown
 	 */
@@ -82,12 +98,12 @@ public abstract class Power implements IPower
 	{
 		return Math.max(cooldownDeactivate.value(), cooldownActivate.value());
 	}
-	
+
 	public int getRemainingDuration()
 	{
 		return duration.value();
 	}
-	
+
 	public int getTimeActive()
 	{
 		return activeTicks;

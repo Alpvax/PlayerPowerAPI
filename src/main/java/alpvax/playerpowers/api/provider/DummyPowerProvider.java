@@ -78,13 +78,23 @@ public class DummyPowerProvider implements IPowerProvider
 	{
 	}
 
-	protected void setPersistant(boolean flag)
+	protected IPowerProvider setPersistant(boolean flag)
 	{
 		persists = flag;
+		return this;
 	}
 
 	protected void addPower(String key, IPower power)
 	{
 		powers.put(key, power);
+	}
+
+	@Override
+	public IPowerProvider onDeath()
+	{
+		/* Persists check is already done, so doesn't need re-doing, cooldowns etc. aren't reset,
+		 * nothing needs to be changed, so just return this.
+		 */
+		return this;
 	}
 }

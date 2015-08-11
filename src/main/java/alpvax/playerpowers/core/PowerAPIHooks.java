@@ -1,21 +1,23 @@
 package alpvax.playerpowers.core;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
-import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
-import net.minecraftforge.fml.common.FMLLog;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemPickupEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
-
 import org.apache.logging.log4j.Level;
 
 import alpvax.playerpowers.api.PlayerPowersConstants;
 import alpvax.playerpowers.api.item.IItemPowerProvider;
 import alpvax.playerpowers.api.player.PoweredPlayer;
 import alpvax.playerpowers.api.power.IPower;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.item.ItemTossEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.fml.common.FMLLog;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.ItemPickupEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedInEvent;
 
 
 public class PowerAPIHooks
@@ -40,6 +42,27 @@ public class PowerAPIHooks
 			{
 				PoweredPlayer.register(player);
 			}
+		}
+	}
+	
+	@SubscribeEvent
+	public void onClonePlayer(PlayerEvent.Clone e)
+	{
+		if(e.wasDeath)
+		{
+			PoweredPlayer.get(e.entityPlayer).cloneOnDeath(PoweredPlayer.get(e.original));
+		}
+	}
+	
+	@SubscribeEvent
+	public void onJoinWorld(EntityJoinWorldEvent e)
+	{
+		// If you have any non-DataWatcher fields in your extended properties that
+		// need to be synced to the client, you must send a packet each time the
+		// player joins the world; this takes care of dying, changing dimensions, etc.
+		if(e.entity instanceof EntityPlayerMP)
+		{
+			PoweredPlayer.get((EntityPlayer)e.entity).syncWithClient();
 		}
 	}
 

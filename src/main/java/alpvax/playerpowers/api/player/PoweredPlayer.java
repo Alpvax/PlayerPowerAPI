@@ -13,6 +13,7 @@ import alpvax.playerpowers.api.PlayerPowersConstants;
 import alpvax.playerpowers.api.power.IPower;
 import alpvax.playerpowers.api.provider.IPowerProvider;
 import alpvax.playerpowers.api.provider.NBTPowerProvider;
+import alpvax.playerpowers.network.PoweredPlayerPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -202,5 +203,32 @@ public class PoweredPlayer implements IExtendedEntityProperties
 	public static final PoweredPlayer get(EntityPlayer player)
 	{
 		return (PoweredPlayer)player.getExtendedProperties(PlayerPowersConstants.TAG_EXTENDED_DATA);
+	}
+
+	public void cloneOnDeath(PoweredPlayer oldPoweredPlayer)
+	{
+		for(String key : oldPoweredPlayer.providers.keySet())
+		{
+			IPowerProvider pp = oldPoweredPlayer.providers.get(key);
+			IPowerProvider ppn = pp.onDeath();
+			if(pp.persistAcrossDeath() && ppn != null)
+			{
+				addProvider(key, ppn);
+			}
+		}
+	}
+
+	public void syncWithClient()
+	{
+		PoweredPlayerPacket msg = new PoweredPlayerPacket();
+		for(String key : providers.keySet())
+		{
+			Map<String, IPower> powers =  providers.get(key).getPowers();
+			for(String pkey : powers.keySet())
+			{
+				msg.addPowerData(key, pkey, powers.get(pkey));
+			}
+		}
+		//TODO:create packet and send to player: sendTo(msg, player)
 	}
 }

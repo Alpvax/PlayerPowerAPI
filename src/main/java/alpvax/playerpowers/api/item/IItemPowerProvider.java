@@ -74,5 +74,10 @@ public interface IItemPowerProvider
 		{
 			((IItemPowerProvider)itemStack.getItem()).itemAdded(this, player);
 		}
+		@Override
+		public IPowerProvider onDeath()
+		{
+			return this;
+		}
 	}
 }

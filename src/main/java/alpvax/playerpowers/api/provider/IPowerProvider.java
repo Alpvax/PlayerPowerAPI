@@ -36,4 +36,13 @@ public interface IPowerProvider
 	 * Use to start continuous powers
 	 */
 	public void onAttach(EntityPlayer player);
+
+	/**
+	 * Called when the player dies if {@link #persistAcrossDeath()} returns true.<br>
+	 * Use it to disable powers, reset cooldowns or anything else required to change on death.<br>
+	 * When respawned, the {@link #onAttach(EntityPlayer)} method will be called.<br>
+	 * Is not called when the player changed dimensions.
+	 * @return the (possibly new) IPowerProvider to be attached to the respawned player.
+	 */
+	public IPowerProvider onDeath();
 }

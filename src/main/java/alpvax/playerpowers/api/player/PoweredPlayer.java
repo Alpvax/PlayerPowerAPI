@@ -5,15 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.Level;
-
-import com.google.common.collect.ImmutableList;
-
-import alpvax.playerpowers.api.PlayerPowersConstants;
-import alpvax.playerpowers.api.power.IPower;
-import alpvax.playerpowers.api.provider.IPowerProvider;
-import alpvax.playerpowers.api.provider.NBTPowerProvider;
-import alpvax.playerpowers.network.PoweredPlayerPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -22,6 +13,15 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.FMLLog;
+
+import org.apache.logging.log4j.Level;
+
+import alpvax.playerpowers.api.PlayerPowersConstants;
+import alpvax.playerpowers.api.power.IPower;
+import alpvax.playerpowers.api.provider.IPowerProvider;
+import alpvax.playerpowers.api.provider.NBTPowerProvider;
+
+import com.google.common.collect.ImmutableList;
 
 
 public class PoweredPlayer implements IExtendedEntityProperties
@@ -136,12 +136,12 @@ public class PoweredPlayer implements IExtendedEntityProperties
 	{
 		return providers.get(key);
 	}
-	
+
 	public int numProviders()
 	{
 		return providers.size();
 	}
-	
+
 	/**
 	 * @return an ImmuteableList of the provider keys
 	 */
@@ -174,7 +174,7 @@ public class PoweredPlayer implements IExtendedEntityProperties
 		}
 		return false;
 	}
-	
+
 	/**
 	 * @param powerclass the class the powers must extend to be returned. Passing null returns all powers
 	 * @return a list of powers extending or implementing the passed in class
@@ -200,6 +200,7 @@ public class PoweredPlayer implements IExtendedEntityProperties
 	{
 		player.registerExtendedProperties(PlayerPowersConstants.TAG_EXTENDED_DATA, new PoweredPlayer());
 	}
+
 	public static final PoweredPlayer get(EntityPlayer player)
 	{
 		return (PoweredPlayer)player.getExtendedProperties(PlayerPowersConstants.TAG_EXTENDED_DATA);
@@ -218,17 +219,22 @@ public class PoweredPlayer implements IExtendedEntityProperties
 		}
 	}
 
-	public void syncWithClient()
+	//TODO Correct javadoc
+	/** If you have any non-DataWatcher fields in your extended properties that
+	 * need to be synced to the client, you must send a packet each time the
+	 * player joins the world; this takes care of dying, changing dimensions, etc.
+	 */
+	public Map<String, Object> getDataForClient()
 	{
-		PoweredPlayerPacket msg = new PoweredPlayerPacket();
+		Map<String, Object> map = new HashMap<String, Object>();
 		for(String key : providers.keySet())
 		{
-			Map<String, IPower> powers =  providers.get(key).getPowers();
+			Map<String, IPower> powers = providers.get(key).getPowers();
 			for(String pkey : powers.keySet())
 			{
-				msg.addPowerData(key, pkey, powers.get(pkey));
+				//TODO: map.addPowerData(key, pkey, powers.get(pkey));
 			}
 		}
-		//TODO:create packet and send to player: sendTo(msg, player)
+		return map;
 	}
 }

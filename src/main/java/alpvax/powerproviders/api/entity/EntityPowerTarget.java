@@ -1,6 +1,6 @@
 package alpvax.powerproviders.api.entity;
 
-import alpvax.powerproviders.api.effect.IPowerEffect;
+import alpvax.powerproviders.api.target.EffectInstance;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,25 +10,25 @@ import net.minecraft.world.World;
 public class EntityPowerTarget extends Entity
 {
 	private int age;
-	private IPowerEffect effect;
+	private EffectInstance effect;
 	
 	public EntityPowerTarget(World worldIn)
 	{
 		super(worldIn);
         noClip = true;
         isImmuneToFire = true;
-		age = 0;
+        age = 0;
+        motionX = 0.0D;
+        motionY = 0.0D;
+        motionZ = 0.0D;
 	}
-    public EntityPowerTarget(World worldIn, double x, double y, double z, IPowerEffect effect)
+    public EntityPowerTarget(World worldIn, double x, double y, double z, EffectInstance effect)
     {
     	this(worldIn);
-        this.setPosition(x, y, z);
-        this.motionX = 0.0D;
-        this.motionY = 0.0D;
-        this.motionZ = 0.0D;
-        this.prevPosX = x;
-        this.prevPosY = y;
-        this.prevPosZ = z;
+        setPosition(x, y, z);
+        prevPosX = x;
+        prevPosY = y;
+        prevPosZ = z;
         this.effect = effect;
     }
 

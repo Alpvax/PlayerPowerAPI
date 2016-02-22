@@ -1,17 +1,17 @@
-package alpvax.powerproviders.core;
+package alpvax.abilities.core;
 
+import alpvax.abilities.capabilities.CapabilityAbilityHandler;
 import alpvax.common.network.AlpPacketManager;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 
-@Mod(modid = PowersConstants.MOD_ID, name = PowersConstants.MOD_NAME)
-public class PowerAPI
+@Mod(modid = AbilityModConstants.MOD_ID, name = AbilityModConstants.MOD_NAME)
+public class AbilityAPI
 {
-	@Mod.Instance(PowersConstants.MOD_ID)
-	public PowerAPI instance;
+	@Mod.Instance(AbilityModConstants.MOD_ID)
+	public AbilityAPI instance;
 
 	public static AlpPacketManager packetHandler;
 
@@ -19,12 +19,11 @@ public class PowerAPI
 	public void preInit(FMLPreInitializationEvent e)
 	{
 
-		packetHandler = new AlpPacketManager(PowersConstants.MOD_ID);
+		packetHandler = new AlpPacketManager(AbilityModConstants.MOD_ID);
 		initPackets();
 
-		PowerAPIHooks hooks = new PowerAPIHooks();
-		MinecraftForge.EVENT_BUS.register(hooks);
-		FMLCommonHandler.instance().bus().register(hooks);
+		CapabilityAbilityHandler.register();
+		MinecraftForge.EVENT_BUS.register(new AbilityAPIHooks());
 	}
 
 	private void initPackets()
